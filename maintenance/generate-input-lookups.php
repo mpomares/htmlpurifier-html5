@@ -38,7 +38,7 @@ width	when type is image
 
 // Table text content copied from
 // https://html.spec.whatwg.org/dev/input.html#attr-input-type-keywords
-$valid_types = '
+$input_types = '
 hidden	Hidden	An arbitrary string	n/a
 text	Text	Text with no line breaks	A text control
 search	Search	Text with no line breaks	Search control
@@ -63,41 +63,8 @@ reset	Reset Button	n/a	A button
 button	Button	n/a	A button
 ';
 
-$all_types = array();
-foreach (extract_rows($valid_types) as $line) {
-    list($type, ) = explode("\t", $line);
-    $all_types[$type] = true;
-}
-
-$allowed = array();
-foreach (extract_rows($input) as $line) {
-    list($attr, $types) = explode("\t", $line, 2);
-
-    $types = str_replace('when type is ', '', $types);
-    $types = str_replace(', or ', ', ', $types);
-    $types = str_replace(' or ', ', ', $types);
-    $types = trim($types);
-
-    $invert = false;
-    if (substr($types, 0, 4) === 'not ') {
-        $invert = true;
-        $types = substr($types, 4);
-    }
-
-    $types = preg_split('/\s*,\s*/', $types);
-    $types = array_map(function () { return true; }, array_flip($types));
-
-    if ($invert) {
-        $a = $all_types;
-        foreach ($types as $type => $_) {
-            unset($a[$type]);
-        }
-        $types = $a;
-    }
-
-    ksort($types);
-    $allowed[$attr] = $types;
-}
+$all_types = parse_input_types($input_types);
+$allowed = parse_input_attrs($input, $all_types);
 
 $LIB_DIR = __DIR__ . '/../library/';
 
@@ -144,4 +111,46 @@ function update_file($file, $token, $value) {
         return file_put_contents($file, $new_contents);
     }
     return false;
+}
+
+function parse_input_types($text) {
+    $all_types = array();
+    foreach (extract_rows($text) as $line) {
+        list($type, ) = explode("\t", $line);
+        $all_types[$type] = true;
+    }
+    return $all_types;
+}
+
+function parse_input_attrs($text, array $input_types) {
+    $allowed = array();
+    foreach (extract_rows($text) as $line) {
+        list($attr, $types) = explode("\t", $line, 2);
+
+        $types = str_replace('when type is ', '', $types);
+        $types = str_replace(', or ', ', ', $types);
+        $types = str_replace(' or ', ', ', $types);
+        $types = trim($types);
+
+        $invert = false;
+        if (substr($types, 0, 4) === 'not ') {
+            $invert = true;
+            $types = substr($types, 4);
+        }
+
+        $types = preg_split('/\s*,\s*/', $types);
+        $types = array_map(function () { return true; }, array_flip($types));
+
+        if ($invert) {
+            $a = $input_types;
+            foreach ($types as $type => $_) {
+                unset($a[$type]);
+            }
+            $types = $a;
+        }
+
+        ksort($types);
+        $allowed[$attr] = $types;
+    }
+    return $allowed;
 }
