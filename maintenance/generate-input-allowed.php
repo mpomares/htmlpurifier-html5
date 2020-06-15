@@ -58,4 +58,4 @@ $result = var_export($allowed, true);
 $result = str_replace('array (', 'array(', $result);
 $result = preg_replace('/=>\s*array/', '=> array', $result);
 
-echo $result;
+echo $result, "\n\n";

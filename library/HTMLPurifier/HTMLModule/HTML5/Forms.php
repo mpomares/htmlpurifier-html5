@@ -35,7 +35,7 @@ class HTMLPurifier_HTMLModule_HTML5_Forms extends HTMLPurifier_HTMLModule_Forms
             array(
                 'accept-charset' => 'Charsets',
                 'action'  => 'URI',
-                'method'  => 'Enum#get,post',
+                'method'  => 'Enum#get,post,dialog',
                 'enctype' => 'Enum#application/x-www-form-urlencoded,multipart/form-data,text/plain',
                 'target'  => new HTMLPurifier_AttrDef_HTML_FrameTarget(),
             )
@@ -58,6 +58,7 @@ class HTMLPurifier_HTMLModule_HTML5_Forms extends HTMLPurifier_HTMLModule_Forms
                 'disabled' => 'Bool#disabled',
                 // 'form' => 'IDREF', // IDREF not implemented, cannot allow
                 'height' => 'Pixels#' . $max,
+                'inputmode' => 'Enum#none,text,tel,url,email,numeric,decimal,search',
                 // 'list' => 'IDREF', // IDREF not implemented, cannot allow
                 'max' => 'Text',
                 'maxlength' => 'Pixels',

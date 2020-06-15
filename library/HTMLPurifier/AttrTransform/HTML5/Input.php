@@ -188,10 +188,32 @@ class HTMLPurifier_AttrTransform_HTML5_Input extends HTMLPurifier_AttrTransform
     );
 
     /**
+     * @var HTMLPurifier_AttrDef[]
+     */
+    protected static $validators;
+
+    public function __construct()
+    {
+        if (!self::$validators) {
+            self::$validators = array(
+                'datetime-local' => new HTMLPurifier_AttrDef_HTML5_Datetime('DatetimeLocal'),
+                'week'   => new HTMLPurifier_AttrDef_HTML5_Week(),
+                'month'  => new HTMLPurifier_AttrDef_HTML5_Datetime('Month'),
+                'date'   => new HTMLPurifier_AttrDef_HTML5_Datetime('Date'),
+                'time'   => new HTMLPurifier_AttrDef_HTML5_Datetime('Time'),
+                'range'  => new HTMLPurifier_AttrDef_HTML5_Float(),
+                'number' => new HTMLPurifier_AttrDef_HTML5_Float(),
+                'color'  => new HTMLPurifier_AttrDef_HTML_Color(),
+                // 'email' => TODO
+            );
+        }
+    }
+
+    /**
      * @param array $attr
      * @param HTMLPurifier_Config $config
      * @param HTMLPurifier_Context $context
-     * @return array
+     * @return array|bool
      */
     public function transform($attr, $config, $context)
     {
@@ -201,23 +223,66 @@ class HTMLPurifier_AttrTransform_HTML5_Input extends HTMLPurifier_AttrTransform
             $t = strtolower($attr['type']);
         }
 
+        // Type failed validation based on Attr.AllowedInputTypes - the element has to be removed
+        if ($t === false) {
+            return false;
+        }
+
+        $attr['type'] = $t;
+
+        // For historical reasons, the name isindex is not allowed
+        // https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#attr-fe-name
+        if (isset($attr['name']) && $attr['name'] === 'isindex') {
+            unset($attr['name']);
+        }
+
+        // Non-empty 'alt' attribute is required for 'image' input
+        if ($t === 'image' && !isset($attr['alt'])) {
+            $alt = trim($config->get('Attr.DefaultImageAlt'));
+            if ($alt === '') {
+                $name = isset($attr['name']) ? trim($attr['name']) : '';
+                $alt = $name !== '' ? $name : 'image';
+            }
+            $attr['alt'] = $alt;
+        }
+
         foreach (self::$allowed as $a => $types) {
             if (isset($attr[$a]) && !isset($types[$t])) {
                 unset($attr[$a]);
             }
         }
 
-        // Non-empty 'alt' attribute is required for 'image' input
-        if ($t === 'image' && !isset($attr['alt'])) {
-            $alt = trim($config->get('Attr.DefaultImageAlt'));
-            if (!strlen($alt)) {
-                $alt = 'image';
-            }
-            $attr['alt'] = $alt;
+        if (isset($attr['value']) && $this->validate($t, $config, $context, $attr['value']) === false) {
+            unset($attr['value']);
         }
 
-        // min and max values must satisfy the format of the input type
+        if (isset($attr['min']) && $this->validate($t, $config, $context, $attr['min']) === false) {
+            unset($attr['min']);
+        }
+
+        if (isset($attr['max']) && $this->validate($t, $config, $context, $attr['max']) === false) {
+            unset($attr['max']);
+        }
 
         return $attr;
+    }
+
+    /**
+     * @param string $type
+     * @param HTMLPurifier_Config $config
+     * @param HTMLPurifier_Context $context
+     * @param mixed $value
+     * @return mixed
+     */
+    protected function validate($type, HTMLPurifier_Config $config, HTMLPurifier_Context $context, $value)
+    {
+        $validator = isset(self::$validators[$type]) ? self::$validators[$type] : null;
+        if (!$validator) {
+            return true;
+        }
+        if (($validated = $validator->validate($value, $config, $context)) === true) {
+            return $value;
+        }
+        return $validated;
     }
 }
