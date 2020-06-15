@@ -36,7 +36,8 @@ value	when type is not file or image
 width	when type is image
 ';
 
-// https://html.spec.whatwg.org/dev/input.html#attr-input-type
+// Table text content copied from
+// https://html.spec.whatwg.org/dev/input.html#attr-input-type-keywords
 $valid_types = '
 hidden	Hidden	An arbitrary string	n/a
 text	Text	Text with no line breaks	A text control
@@ -94,14 +95,15 @@ foreach (extract_rows($input) as $line) {
         $types = $a;
     }
 
+    ksort($types);
     $allowed[$attr] = $types;
 }
 
-$result = var_export($allowed, true);
-$result = str_replace('array (', 'array(', $result);
-$result = preg_replace('/=>\s*array/', '=> array', $result);
+$LIB_DIR = __DIR__ . '/../library/';
 
-echo $result, "\n\n";
+update_file($LIB_DIR . '/HTMLPurifier/AttrTransform/HTML5/Input.php', 'protected static $allowed = ', $allowed);
+update_file($LIB_DIR . '/HTMLPurifier/AttrDef/HTML5/InputType.php', 'protected static $values = ', $all_types);
+
 
 function extract_rows($input) {
     $input = str_replace("\r\n", "\n", $input);
@@ -117,3 +119,29 @@ function extract_rows($input) {
     return $rows;
 }
 
+function dump_var($input, $indent = 0) {
+    $output = var_export($input, true);
+    $output = str_replace('array (', 'array(', $output);
+    $output = preg_replace('/=>\s*array/', '=> array', $output);
+    $output = str_replace('  ', '    ', $output);
+
+    $indent = str_repeat(' ', (int) $indent);
+    $output = str_replace("\n", "\n" . $indent, $output);
+
+    return $output;
+}
+
+function update_file($file, $token, $value) {
+    $contents = file_get_contents($file);
+    $pos_start = strpos($contents, $token);
+    $pos_end = strpos($contents, ';', $pos_start);
+
+    $new_contents = substr($contents, 0, $pos_start)
+        . $token . dump_var($value, 4)
+        . substr($contents, $pos_end);
+
+    if ($contents !== $new_contents) {
+        return file_put_contents($file, $new_contents);
+    }
+    return false;
+}
