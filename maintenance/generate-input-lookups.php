@@ -3,6 +3,7 @@
 
 // Error message from https://validator.nu/ for <input type="text" min="0" />
 // used for extracting map of allowed input attributes depending on input type
+// Based on https://html.spec.whatwg.org/dev/input.html#input-type-attr-summary
 $input = '
 accept	when type is file
 alt	when type is image
