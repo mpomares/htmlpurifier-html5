@@ -12,22 +12,58 @@ class HTMLPurifier_HTMLModule_HTML5_SafeForms_InputTest extends HTMLPurifier_HTM
     {
         return array(
             // text
-            array(
+            'input text no type' => array(
                 '<input>',
+                '<input type="text">',
+            ),
+            'input text empty type' => array(
+                '<input type="">',
                 '<input type="text">',
             ),
 
             // image
-            array(
+            'input image alt default' => array(
                 '<input type="image">',
                 '<input type="image" alt="image">',
             ),
+            'input image alt from name' => array(
+                '<input type="image" name="image1">',
+                '<input type="image" name="image1" alt="image1">',
+            ),
 
-
+            // datetime (obsolete)
+            'input datetime' => array(
+                '<input type="datetime">',
+                '<input type="datetime-local">',
+            ),
 
             // week
 
             //
+        );
+    }
+
+    /**
+     * @param string $input
+     * @param string $expected OPTIONAL
+     * @dataProvider urlValueProvider
+     */
+    public function testUrlValue($input, $expected = null)
+    {
+        $this->testDataProvider($input, $expected);
+    }
+
+    public function urlValueProvider()
+    {
+        return array(
+            array(
+                '<input type="url" value="file.txt">',
+                '<input type="url">',
+            ),
+            array(
+                // url must be absolute
+                '<input type="url" value="https://foo-bar.com/file.txt">',
+            ),
         );
     }
 
@@ -77,6 +113,9 @@ class HTMLPurifier_HTMLModule_HTML5_SafeForms_InputTest extends HTMLPurifier_HTM
                 '<input type="time" min="21:37" max="23:59" step="1">',
             ),
             array(
+                '<input type="time" min="21:37:00" max="23:59:59" step="1">',
+            ),
+            array(
                 '<input type="time" min="21" max="23" step="1">',
                 '<input type="time" step="1">',
             ),
@@ -106,6 +145,72 @@ class HTMLPurifier_HTMLModule_HTML5_SafeForms_InputTest extends HTMLPurifier_HTM
             array(
                 '<input type="range" min="2005-04" max="2010-04" step="1">',
                 '<input type="range" step="1">',
+            ),
+
+            // invalid
+            array(
+                '<input type="button" min="1" max="10">',
+                '<input type="button">',
+            ),
+            array(
+                '<input type="checkbox" min="1" max="10">',
+                '<input type="checkbox" value="">',
+            ),
+            array(
+                '<input type="color" min="1" max="10">',
+                '<input type="color">',
+            ),
+            array(
+                '<input type="email" min="1" max="10">',
+                '<input type="email">',
+            ),
+            array(
+                '<input type="file" min="1" max="10">',
+                '<input type="file">',
+            ),
+            array(
+                '<input type="hidden" min="1" max="10">',
+                '<input type="hidden" value="">',
+            ),
+            array(
+                '<input type="image" min="1" max="10">',
+                '<input type="image" alt="image">',
+            ),
+            array(
+                '<input type="password" min="1" max="10">',
+                '<input type="password">',
+            ),
+            array(
+                '<input type="radio" min="1" max="10">',
+                '<input type="radio" value="">',
+            ),
+            array(
+                '<input type="reset" min="1" max="10">',
+                '<input type="reset">',
+            ),
+            array(
+                '<input type="search" min="1" max="10">',
+                '<input type="search">',
+            ),
+            array(
+                '<input type="submit" min="1" max="10">',
+                '<input type="submit">',
+            ),
+            array(
+                '<input type="tel" min="1" max="10">',
+                '<input type="tel">',
+            ),
+            array(
+                '<input min="1" max="10">',
+                '<input type="text">',
+            ),
+            array(
+                '<input type="text" min="1" max="10">',
+                '<input type="text">',
+            ),
+            array(
+                '<input type="url" min="1" max="10">',
+                '<input type="url">',
             ),
         );
     }
@@ -157,7 +262,7 @@ class HTMLPurifier_HTMLModule_HTML5_SafeForms_InputTest extends HTMLPurifier_HTM
             ),
             array(
                 '<input type="checkbox" step="1">',
-                '<input type="checkbox">',
+                '<input type="checkbox" value="">',
             ),
             array(
                 '<input type="color" step="1">',
@@ -173,7 +278,7 @@ class HTMLPurifier_HTMLModule_HTML5_SafeForms_InputTest extends HTMLPurifier_HTM
             ),
             array(
                 '<input type="hidden" step="1">',
-                '<input type="hidden">',
+                '<input type="hidden" value="">',
             ),
             array(
                 '<input type="image" step="1">',
@@ -185,7 +290,7 @@ class HTMLPurifier_HTMLModule_HTML5_SafeForms_InputTest extends HTMLPurifier_HTM
             ),
             array(
                 '<input type="radio" step="1">',
-                '<input type="radio">',
+                '<input type="radio" value="">',
             ),
             array(
                 '<input type="reset" step="1">',

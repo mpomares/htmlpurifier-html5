@@ -179,8 +179,26 @@ class HTMLPurifier_AttrTransform_HTML5_Input extends HTMLPurifier_AttrTransform
             'range' => true,
         ),
         'value' => array(
-            'not file' => true,
-            'image' => true,
+            'hidden' => true,
+            'text' => true,
+            'search' => true,
+            'tel' => true,
+            'url' => true,
+            'email' => true,
+            'password' => true,
+            'date' => true,
+            'month' => true,
+            'week' => true,
+            'time' => true,
+            'datetime-local' => true,
+            'number' => true,
+            'range' => true,
+            'color' => true,
+            'checkbox' => true,
+            'radio' => true,
+            'submit' => true,
+            'reset' => true,
+            'button' => true,
         ),
         'width' => array(
             'image' => true,
@@ -204,6 +222,7 @@ class HTMLPurifier_AttrTransform_HTML5_Input extends HTMLPurifier_AttrTransform
                 'range'  => new HTMLPurifier_AttrDef_HTML5_Float(),
                 'number' => new HTMLPurifier_AttrDef_HTML5_Float(),
                 'color'  => new HTMLPurifier_AttrDef_HTML_Color(),
+                'url'    => new HTMLPurifier_AttrDef_HTML5_AbsoluteURI(),
                 // 'email' => TODO
             );
         }
@@ -262,6 +281,13 @@ class HTMLPurifier_AttrTransform_HTML5_Input extends HTMLPurifier_AttrTransform
 
         if (isset($attr['max']) && $this->validate($t, $config, $context, $attr['max']) === false) {
             unset($attr['max']);
+        }
+
+        // The value attribute is always optional, though should be considered mandatory
+        // for checkbox, radio, and hidden.
+        // https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-value
+        if (!isset($attr['value']) && ($t === 'checkbox' || $t === 'radio' || $t === 'hidden')) {
+            $attr['value'] = '';
         }
 
         return $attr;
