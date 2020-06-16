@@ -120,6 +120,7 @@ function parse_input_types($text) {
         list($type, ) = explode("\t", $line);
         $all_types[$type] = true;
     }
+    ksort($all_types);
     return $all_types;
 }
 

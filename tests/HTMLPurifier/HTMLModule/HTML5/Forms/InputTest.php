@@ -56,13 +56,12 @@ class HTMLPurifier_HTMLModule_HTML5_SafeForms_InputTest extends HTMLPurifier_HTM
     public function urlValueProvider()
     {
         return array(
-            array(
+            'input url absolute uri' => array(
+                '<input type="url" value="https://foo-bar.com/file.txt">',
+            ),
+            'input url relative uri' => array(
                 '<input type="url" value="file.txt">',
                 '<input type="url">',
-            ),
-            array(
-                // url must be absolute
-                '<input type="url" value="https://foo-bar.com/file.txt">',
             ),
         );
     }
